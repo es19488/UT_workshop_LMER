@@ -1,4 +1,4 @@
-# کارگاه آموزشی تحلیل رگرسیون هطی ترکیبی (دانشکده زبان ها و ادبیات خارجی دانشگاه تهران)
+# کارگاه آموزشی تحلیل رگرسیون خطی ترکیبی (دانشکده زبان ها و ادبیات خارجی دانشگاه تهران)
 
 In this repository, you may find the slides (UT-workshop-day-one.html), datasets (design_lexc.csv; groadner.csv; context_amb.csv), and exercises (Exercise 1.R; Exercise 2.R; Exercise 3.R) for the workshop "Mixed Effects Modelling in R" to be held at the University of Tehran's Faculty of Foreign Languages and Literature on 19 and 21 Azar (10 and 12 December). Please make sure to attend the workshop with R and Rstudio already installed on your laptop.
 
