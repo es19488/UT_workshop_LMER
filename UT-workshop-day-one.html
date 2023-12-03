@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mixed Effects Modelling in R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Dr Ehsan Solaimani" />
+    <script src="UT-workshop-day-one_files/header-attrs-2.25/header-attrs.js"></script>
+    <script src="UT-workshop-day-one_files/kePrint-0.0.1/kePrint.js"></script>
+    <link href="UT-workshop-day-one_files/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Mixed Effects Modelling in R
+]
+.subtitle[
+## University of Tehran
+]
+.author[
+### Dr Ehsan Solaimani
+]
+.date[
+### 19 and 21 Azar
+]
+
+---
+
+
+
+
+## What this workshop will cover
+- Basics of general linear models (GLM)
+- Fixed vs. random effects
+- Contrast coding to deal with categorical variables
+- How to run mixed effects models  and interpret the output
+---
+## Generalised Linear Models
+
+- Helps examine the relationship between two or more variables
+- Dependent variable is the variable that is observed, measured, or recorded in an experiment and is affected by the independent variable.
+- Independent variables are all the other variables that are observed, manipulated, or controlled by the experimenter and are believed to have an effect on the dependent variable.
+
+---
+
+## GLM (continued)
+- Assumes a linear relationship between the DV and IVs
+  - &lt;font size="+0.001"&gt; `\(y= b_{1}x+b_{0}\)` &lt;/font&gt;
+  - &lt;font size="+0.001"&gt; `\(y:Dependent\)` &lt;/font&gt;
+  - &lt;font size="+0.001"&gt; `\(x:Independent\)` &lt;/font&gt;
+  - &lt;font size="+0.001"&gt; `\(b_{0}:intercept\)` &lt;/font&gt;
+  - &lt;font size="+0.001"&gt; `\(b_{1}:slope\)` &lt;/font&gt;
+
+- We know x and y, but we want to estimate b0 and b1
+---
+
+## GLM (continued)
+
+As an example, below the slope = 2 and intercept = 200
+
+![](UT-workshop-day-one_files/figure-html/casdrs-1.png)&lt;!-- --&gt;
+
+---
+
+## GLM (continued)
+
+The intercept `\(b_{0}\)` is the point where the GLM intersects the y-axis. It signifies the baseline prediction when the  independent variable is zero.
+
+![](UT-workshop-day-one_files/figure-html/casdvsrs-1.png)&lt;!-- --&gt;
+
+---
+
+## GLM (continued)
+
+The slope `\(b_{1}\)` indicates how steep the line is, i.e., the larger the slope, the steeper the line. It shows how much `\(y\)` will change, given one unit of increase in `\(x\)`
+
+![](UT-workshop-day-one_files/figure-html/cassddvsrs-1.png)&lt;!-- --&gt;
+
+
+---
+## Same slope, different intercepts
+
+![](UT-workshop-day-one_files/figure-html/cdfdfasdrs-1.png)&lt;!-- --&gt;
+
+---
+## Different slopes, same intercept
+
+![](UT-workshop-day-one_files/figure-html/cdfrfdfasdrs-1.png)&lt;!-- --&gt;
+
+---
+## Example 1
+
+Suppose we want to examine the relationship between lexical access and L2 proficiency. An intuitive hypothesis is that with more proficiency, lexical access is faster. We conduct a lexical decision task to investigate this.
+
+**Presentation**: A word or a non-word (a random string of letters) is presented to the participant on a screen.
+
+**Decision**: The participant must quickly decide whether the presented string is a real word or not.
+
+**Response**: The participant responds by pressing a key, often one key for "word" and another for "non-word", while
+their reaction times are recorded to reflect difficulty in lexical access.
+---
+
+## Example 1 (continued)
+
+First, we load the data:
+
+
+```r
+design_lexc &lt;-read.csv("design_lexc.csv")
+```
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; subject &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; item &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; condition &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; prof &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; RT &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; word &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 383.6191 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item02 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; nonword &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 640.0241 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item03 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; word &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 405.8389 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; nonword &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 620.5484 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item05 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; word &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 505.5232 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; nonword &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 928.3194 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+## Example 1 (continued)
+
+We fit a GLM to predict reaction times (RT) as a function of proficiency (prof).
+
+
+```r
+model00&lt;-lm(RT~prof, design_lexc) #fit model
+summary(model00) #see output (next page)
+```
+
+---
+
+## Example 1 (continued)
+
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+
+- *call* reminds you of the model formula -- Residuals: ideally, 1Q and 3Q should be very close (i.e., normal distribution)
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- The coefficients table shows the estimates for intercept and slope
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- RT ~ - 16*proficiency + 1858
+
+---
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- The model predicts that RTs will be 16 ms faster, given one unit of increase in proficiency.
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- Standard Error (SE) indicates uncertainty around this estimate; larger SE, more uncertainty.
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- t-value is the estimate divided by the standard error: -15.8751/0.7486
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+
+- P-value indicates whether you can *confidently* reject the null hypothesis that the true value of the estimate is zero (if there is a *significant* effect?)
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+
+- R-squared indicates explained variance (higher values show better fit)
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- Results of F-test indicate whether you can confidently reject the null hypothesis that the fitted GLM is NOT better fit than a line with slope=0.  
+
+---
+
+
+```r
+summary(model00)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ prof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 1858.2227    66.7317   27.85   &lt;2e-16 ***
+## prof         -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+- The intercept shows the predicted value of RT at zero proficiency --&gt; ?
+
+---
+
+## Example 1 (continued)
+- To help with the interpretation, we center proficiency
+- This involves subtracting the mean (of proficiency) from every single proficiency value
+
+---
+
+
+```r
+design_lexc$cprof &lt;- design_lexc$prof - mean(design_lexc$prof)
+```
+- This adds a new column to the data, with each value representing distance from mean proficiency.
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; subject &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; item &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; condition &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; prof &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; RT &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; cprof &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; word &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 383.6191 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -6.664186 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item02 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; nonword &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 640.0241 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -6.664186 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; subject01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item03 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; word &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 82.33581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 405.8389 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -6.664186 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+- Let's refit the model (with cprof, NOT with prof)
+
+
+```r
+model01&lt;-lm(RT~cprof, design_lexc)
+summary(model01)
+```
+
+```
+## 
+## Call:
+## lm(formula = RT ~ cprof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -422.00 -145.39  -33.93  104.55 1441.59 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 445.3355     3.7425  119.00   &lt;2e-16 ***
+## cprof       -15.8751     0.7486  -21.21   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 211.7 on 3198 degrees of freedom
+## Multiple R-squared:  0.1233,	Adjusted R-squared:  0.123 
+## F-statistic: 449.7 on 1 and 3198 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+
+```r
+summary(model01)
+```
+
+- Now the intercept shows predicted RT at mean proficiency
+- Note that the value for slope (&amp; all other parameters) remain unchanged.
+
+---
+
+## Example 1 (continued)
+- We can add more variables into our model.
+- Here we add *condition* (word, non-word) to calculate the RT difference between words and nonwords
+
+
+```r
+model02&lt;-lm(RT~condition+cprof, design_lexc)
+```
+
+---
+
+```
+## 
+## Call:
+## lm(formula = RT ~ condition + cprof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -441.49 -144.91  -31.77  100.97 1413.21 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    473.715      5.246  90.306  &lt; 2e-16 ***
+## conditionword  -56.759      7.418  -7.651 2.62e-14 ***
+## cprof          -15.875      0.742 -21.396  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 209.8 on 3197 degrees of freedom
+## Multiple R-squared:  0.139,	Adjusted R-squared:  0.1385 
+## F-statistic: 258.2 on 2 and 3197 DF,  p-value: &lt; 2.2e-16
+```
+The intercept shows the prediction of the model at the baseline levels of both independent variables, i.e., mean proficiency and *nonword* category of condition (in alphabetical order)
+
+---
+
+```
+## 
+## Call:
+## lm(formula = RT ~ condition + cprof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -441.49 -144.91  -31.77  100.97 1413.21 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    473.715      5.246  90.306  &lt; 2e-16 ***
+## conditionword  -56.759      7.418  -7.651 2.62e-14 ***
+## cprof          -15.875      0.742 -21.396  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 209.8 on 3197 degrees of freedom
+## Multiple R-squared:  0.139,	Adjusted R-squared:  0.1385 
+## F-statistic: 258.2 on 2 and 3197 DF,  p-value: &lt; 2.2e-16
+```
+- The model predicts that RTs will be 57ms faster for words than non-words.
+
+---
+
+```
+## 
+## Call:
+## lm(formula = RT ~ condition + cprof, data = design_lexc)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -441.49 -144.91  -31.77  100.97 1413.21 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    473.715      5.246  90.306  &lt; 2e-16 ***
+## conditionword  -56.759      7.418  -7.651 2.62e-14 ***
+## cprof          -15.875      0.742 -21.396  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 209.8 on 3197 degrees of freedom
+## Multiple R-squared:  0.139,	Adjusted R-squared:  0.1385 
+## F-statistic: 258.2 on 2 and 3197 DF,  p-value: &lt; 2.2e-16
+```
+- Since p-value is &lt;.05, we can *confidently* reject the null hypothesis that the true RT difference between words and non-words is zero, i.e., there is a significant RT difference between words and non-words
+
+---
+
+## The case for random effects
+
+- Importantly, *model01* predicts exactly the same intercept and slopes per participant
+- Every participant is expected to have exactly the same RT at mean proficiency for nonwords (474ms), and
+- Average RT per participant is expected to be 57 ms faster on words than nonwords. 
+
+---
+
+## The case for random effects (continued)
+- The same applies to items, i.e., every item is expected to be associated with the same intercept and slope
+- All of our parameters in *model01* are **fixed**, meaning that they do not vary across individuals.
+- But is this a reasonable assumption?
+
+---
+![](UT-workshop-day-one_files/figure-html/cdfrwddvsadaddsdfdfadffdkfasdrs-1.png)&lt;!-- --&gt;
+
+---
+## Random effects of subject
+- Clearly, the model estimates do not equally apply to all subjects
+- Some participants are faster than others, and some react differently to experimental manipulations
+- We need to take this into account, i.e., we should introduce by-subject variability around both the intercept and slope
+- This is called random effects, i.e., we expect by-subject random variability around the estimates of the model
+- Random effects are categorical variables whose levels are viewed as a sample from some larger population, as opposite to fixed effects, whose levels are of interest in their own right
+
+---
+
+- The models below include both *fixed* and *random* effects, and as such, they are called *mixed effects models*
+
+
+```r
+lmer(RT~condition+cprof+(1|subject), design_lexc) #by-subject adjustments to the intercept only
+lmer(RT~condition+cprof+(0+condition|subject), design_lexc) #by-subject adjustments to the slope only
+lmer(RT~condition+cprof+(1+condition|subject), design_lexc) #by-subject adjustments to intercept and slope
+```
+
+
+---
+
+## Random effects of item
+- In principle, we could have as many random effects as we want 
+- In (Psycho)linguistics and Psychology, it is very common to include both *subjects* and *items* as random effects
+
+---
+
+![](UT-workshop-day-one_files/figure-html/cdfrwddvsadadsddsdfdfadffdkfasdrs-1.png)&lt;!-- --&gt;
+
+---
+
+## Which random effects to include?
+- Some advocate a parsimonious approach, i.e., include random effects only if they improve the model fit
+- Some argue that random effects should only be included if they are *theoretically motivated*
+- Others argue for a *maximal* random effects structure, i.e., both by-subject and by-item adjustments to the intercept and slope:
+
+
+```r
+lmer(RT~condition+cprof+(1|subject)+(1|item), design_lexc) #by-subject and by-item adjustments to the intercept only
+lmer(RT~condition+cprof+(0+condition|subject)+(0+condition|item), design_lexc) #by-subject and by-item adjustments to the slope only
+lmer(RT~condition+cprof+(1+condition|subject)+(1+condition|item), design_lexc) #by-subject and by-item adjustments to the intercept and slope
+```
+
+---
+The maximal model includes all possible random effects (both by-subject and by-item adjustments to intercept and slopes)
+
+
+```r
+model03 &lt;- lmer(RT~condition+cprof+(1+condition|subject)+(1+condition|item), design_lexc)
+summary(model03)
+```
+
+---
+
+
+```
+## Linear mixed model fit by REML ['lmerMod']
+## Formula: RT ~ condition + cprof + (1 + condition | subject) + (1 + condition |  
+##     item)
+##    Data: design_lexc
+## 
+## REML criterion at convergence: 41567.9
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.2803 -0.6155 -0.1191  0.4665  6.2484 
+## 
+## Random effects:
+##  Groups   Name          Variance Std.Dev. Corr 
+##  subject  (Intercept)   16075    126.79        
+##           conditionword  5481     74.04   -0.87
+##  item     (Intercept)   15322    123.78        
+##           conditionword  3028     55.03   -0.67
+##  Residual               22226    149.08        
+## Number of obs: 3200, groups:  subject, 80; item, 40
+## 
+## Fixed effects:
+##               Estimate Std. Error t value
+## (Intercept)    473.715     24.452  19.373
+## conditionword  -56.759     13.115  -4.328
+## cprof          -11.896      1.724  -6.900
+## 
+## Correlation of Fixed Effects:
+##             (Intr) cndtnw
+## conditinwrd -0.719       
+## cprof        0.000  0.000
+```
+
+---
+
+- A new *random effects* section is added to the output
+
+
+```
+##  Groups   Name          Std.Dev. Corr  
+##  subject  (Intercept)   126.788        
+##           conditionword  74.035  -0.873
+##  item     (Intercept)   123.784        
+##           conditionword  55.026  -0.672
+##  Residual               149.083
+```
+
+- 126.788 --&gt; average by-subject adjustment to the intercept
+-  74.035 --&gt; average by-subject adjustment to the slope
+-  -0.873 --&gt; correlation between by-subject adjustments to the intercept and slope. Here this means that faster individuals showed a more pronounced effect to the experimental manipulation.
+
+---
+
+
+```
+##  Groups   Name          Std.Dev. Corr  
+##  subject  (Intercept)   126.788        
+##           conditionword  74.035  -0.873
+##  item     (Intercept)   123.784        
+##           conditionword  55.026  -0.672
+##  Residual               149.083
+```
+
+- 123.784 --&gt; average by-item adjustment to the intercept
+-  55.026 --&gt; average by-item adjustment to the slope
+-  -0.672 --&gt; correlation between by-item adjustments to the intercept and slope. Here this means that items that on average had faster RTs showed a more pronounced difference between Word and Nonwords.
+- 149.083 --&gt; residuals (any other source of variance that is unaccounted for by the model)
+
+---
+
+
+```
+##                Estimate Std. Error   t value
+## (Intercept)   473.71519  24.451835 19.373401
+## conditionword -56.75936  13.114664 -4.327931
+## cprof         -11.89601   1.723982 -6.900309
+```
+
+- The fixed effects no longer show p-values!
+- This is because with random effects, it is no longer possible to derive degrees of freedom analytically
+- Solution (1): consider t &gt; 2 as significant 
+- Solution (2): conduct model comparisons using the *anova* function
+- Solution (3): *approximate* degrees of freedom and calculate p-values. This can be done by adding the *lmerTest* library
+
+---
+
+
+```r
+library(lmerTest)
+```
+
+```
+## 
+## Attaching package: 'lmerTest'
+```
+
+```
+## The following object is masked from 'package:lme4':
+## 
+##     lmer
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     step
+```
+
+```r
+model03 &lt;- lmer(RT~condition+cprof+(1+condition|subject)+(1+condition|item), design_lexc)
+summary(model03)$coefficients
+```
+
+```
+##                Estimate Std. Error       df   t value     Pr(&gt;|t|)
+## (Intercept)   473.71519  24.451835 75.92837 19.373401 4.113001e-31
+## conditionword -56.75936  13.114664 74.24420 -4.327931 4.632316e-05
+## cprof         -11.89601   1.723982 75.95645 -6.900309 1.355508e-09
+```
+
+---
+
+- Let's compare the fixed effects in model02 (no random effects) and model03 (with random effects).
+
+model02 (no random effects):
+
+
+```
+##                Estimate Std. Error   t value     Pr(&gt;|t|)
+## (Intercept)   473.71519   5.245695 90.305513 0.000000e+00
+## conditionword -56.75936   7.418533 -7.651021 2.621715e-14
+```
+ 
+
+mode03 (with random effects):
+
+```
+##                Estimate Std. Error       df   t value     Pr(&gt;|t|)
+## (Intercept)   473.71519   24.45183 75.92837 19.373401 4.113001e-31
+## conditionword -56.75936   13.11466 74.24420 -4.327931 4.632316e-05
+```
+
+- The coefficients are exactly the same, but the model with random effects is less confident (smaller SE) about the effect of *condition* (why?)
+
+---
+
+## Why mixed effects models?
+
+- In repeated measures data, individual observations are NOT independent. This violates the assumption of *independence* in GLMs
+- Violating the *independence* assumption may lead to inflated type I error, as the model is overly confident about the estimates, but this is unwarranted!
+- The fact that individual rows of data tend to be similar in size does not necessarily mean that any observed difference is due to the experimental manipulation (i.e., significant effect), but may partially suggest that the data are from the same subjects and items
+- Mixed models allow for more robust hypothesis testing as they consider both fixed and random effects
+
+---
+
+## Interim summary
+
+- You may include both *continuous* and *categorical* variables in a GLM, but it is usually a good idea to center *continuous* variables. This helps with interpretation but also with computation of model parameters in *mixed effects models*.
+- If you have repeated measures, you should include random effects in the model formula to account for random variability around model estimates.
+
+---
+## Interim summary
+
+- The choice of random effects structure is debatable, but most will probably agree on a maximal model
+- It is also debatable how to derive p-values (&amp; run null hypothesis significance testing) in mixed models
+- In this workshop, we approximate degrees of freedom by using the *lmerTest* package, but other approaches are also possible
+
+---
+## Example (2)
+- Let's consider another example (by Groadner) which examined reading times by L1-English speakers in subject and object relative clauses
+- subject relative: the guy who saw the girl
+- object relative: the guy who the girl saw
+
+---
+## Example (2)
+
+
+```r
+groadner_dat &lt;-read.csv("groadner.csv")
+```
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; subject &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; item &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; condition &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; rawRT &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; objgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 320 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; subjgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 424 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; objgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 309 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; subjgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 274 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; objgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 333 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; subjgap &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 266 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+## Example (2)
+
+- We want to create a model to examine the RT difference between object and subject RCs.
+- The only fixed effect is *condition*
+- We go with a maximal random effects structure:
+
+
+```r
+model04 &lt;- lmer(rawRT ~ condition + (1+condition|subject) + (1+condition|item), groadner_dat)
+```
+
+```
+## boundary (singular) fit: see help('isSingular')
+```
+
+This error indicates that the lmer's underlying machinery did not manage to find a unique solution to estimate the different parameters.
+
+---
+## Example (2)
+
+- This is sometimes referred to as *convergence* error. You should ALWAYS check that the model converged successfully before relying on the output
+- Convergence issues in lmer are most likely due to random slopes -- the model does not have enough data to estimate random slopes
+
+---
+## Example (2)
+
+- What this means is that you are probably being too optimistic in the model formula -- you should simplify the model to achieve convergence
+- Given this data, the only way to achieve convergence is to include by-item adjustments to the intercept only (remove all random slopes):
+
+
+```r
+model04 &lt;- lmer(rawRT ~ condition + (1|subject) + (1|item), groadner_dat)
+```
+
+---
+
+- By default,  *lmer* considers the reference level for categorical variables to be the one that alphabetically occurs prior to the other levels.
+
+
+```
+##                   Estimate Std. Error        df   t value     Pr(&gt;|t|)
+## (Intercept)       471.3601   30.34510  55.80305 15.533322 6.416694e-22
+## conditionsubjgap -102.2857   24.37625 614.00004 -4.196121 3.116189e-05
+```
+
+---
+
+![](UT-workshop-day-one_files/figure-html/sdfsdffdafsddsasdfahh-1.png)&lt;!-- --&gt;
+
+
+---
+## Contrast coding
+
+- Under the hood, R creates a linear combination of our categorical variables (the ones that are inputted as fixed effects) to compare their different levels (subject RC vs. object RC)
+- This linear combination is known as *contrast* and the way contrasts are coded is known as *contrast* coding.
+- But what is the default contrast?
+
+---
+## Example (3): Contrast coding (continued)
+
+
+```r
+contrasts(groadner_dat$condition)
+```
+
+```
+##         subjgap
+## objgap        0
+## subjgap       1
+```
+
+- The two rows indicate the different levels of condition, and the column shows how these are coded in the *slope* term
+- But why does *conditionsubjgap *show the RT difference between subject and object RCs? 
+
+---
+
+## Contrast coding (continued)
+
+- To work with categorical variables, we need to code our contrasts in such a way that our model addresses our **research questions**
+- Example (3): Self-paced reading to examine relative clause ambiguities
+- *the assistant of the pharmacists who was preparing the medicine* --&gt; DP1 attachment
+- *the assistants of the pharmacist who was preparing the medicine* --&gt; DP2 attachment
+
+---
+
+## Contrast coding (continued)
+
+But what about when RC ambiguities are presented in a biasing context? The hypothesis we want to test is that in a DP1-supporting context, RTs will be faster in DP1 attachment, whereas in a DP2-supporting context, RTs will be faster in DP2 attachment (interaction attachment x context)
+
+- attachment (DP1, DP2) x context (DP1, DP2) 
+
+---
+
+
+```r
+RC_amb &lt;-read.csv("context_amb.csv")
+```
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; X &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; subject &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; L1.1 &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; item &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; attachment &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; context &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; RT &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 743.7625 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item02 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 194.9060 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item03 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 471.2018 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 377.0899 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item05 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 251.7727 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 283.4834 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+## Contrast coding (continued)
+We fit a mixed effects model to examine the interaction between attachment and context. But first, let's examine the default contrasts:
+
+
+```r
+contrasts(RC_amb$attachment)
+```
+
+```
+##     DP2
+## DP1   0
+## DP2   1
+```
+
+
+```r
+contrasts(RC_amb$context)
+```
+
+```
+##     DP2
+## DP1   0
+## DP2   1
+```
+
+---
+
+## Contrast coding (continued)
+
+```r
+model05 &lt;- lmer(RT ~ attachment*context+(1+attachment*context|subject)+ (1+attachment*context|item), RC_amb)
+```
+
+```
+## boundary (singular) fit: see help('isSingular')
+```
+
+
+---
+
+## Contrast coding (continued)
+
+- We simplify the random effects structure to achieve convergence. 
+
+```r
+model05 &lt;- lmer(RT ~ attachment*context+(1|subject)+ (1|item), RC_amb) 
+```
+
+---
+
+
+```
+##                            Estimate Std. Error         df    t value
+## (Intercept)              390.559786   15.24250   55.62346 25.6230715
+## attachmentDP2             43.883202    7.53866 3009.99980  5.8210879
+## contextDP2                -3.768171    7.53866 3009.99980 -0.4998462
+## attachmentDP2:contextDP2 -48.760786   10.66128 3009.99980 -4.5736354
+##                              Pr(&gt;|t|)
+## (Intercept)              1.769369e-32
+## attachmentDP2            6.462671e-09
+## contextDP2               6.172199e-01
+## attachmentDP2:contextDP2 4.986853e-06
+```
+
+- *Intercept* shows average RT for (DP1-attachment, DP1-context). All other conditions are then compared to this baseline.
+- *attachmentDP2 * is the average RT difference between (DP1-attachment, DP1-context) and (DP2-attachment, DP1-context). This is significant -- DP1-supporting context facilitates attachment to DP1.
+
+---
+
+
+```
+##                            Estimate Std. Error         df    t value
+## (Intercept)              390.559786   15.24250   55.62346 25.6230715
+## attachmentDP2             43.883202    7.53866 3009.99980  5.8210879
+## contextDP2                -3.768171    7.53866 3009.99980 -0.4998462
+## attachmentDP2:contextDP2 -48.760786   10.66128 3009.99980 -4.5736354
+##                              Pr(&gt;|t|)
+## (Intercept)              1.769369e-32
+## attachmentDP2            6.462671e-09
+## contextDP2               6.172199e-01
+## attachmentDP2:contextDP2 4.986853e-06
+```
+
+- *contextDP2* is the average RT difference between (DP1-attachment, DP1-context) and (DP1-attachment, DP2-context)
+- *attachmentDP2:contextDP2* is the average RT difference between (DP1-attachment, DP1-context) and (DP2-attachment, DP2-context)
+
+---
+
+## Sum contrasts
+
+- To compute main and interaction effects, we should use sum coding. This involves (1) assigning 1/number_of_levels to each level of categorical variable, and then (2) assigning positive and negative signs to each level to make the desired comparisons:
+
+
+```r
+contrasts(RC_amb$attachment) &lt;- c(-0.5,0.5)
+contrasts(RC_amb$attachment)
+```
+
+```
+##     [,1]
+## DP1 -0.5
+## DP2  0.5
+```
+The slope for *attachment* will show (DP2attachment - DP1attachment)
+
+---
+
+## Sum contrasts
+
+- To compute main and interaction effects, we should use sum coding. With a 2-level categorical variable, this involves assigning (-0.5, 0.5) to the contrast matrix, as below:
+
+```r
+contrasts(RC_amb$context) &lt;- c(-0.5,0.5)
+contrasts(RC_amb$context)
+```
+
+```
+##     [,1]
+## DP1 -0.5
+## DP2  0.5
+```
+The slope for *context* will show (DP2context - DP1context)
+---
+## How to interpret the interaction?
+
+- The interaction term will be: 
+- [DP1contxDP1att+ DP2contxDP2att]-[DP1contxDP2att + DP2contxDP1att]
+- To simplify, interaction term will show if RTs in DP1- and DP2- context conditions will be any different at DP1- and DP2-attachment.
+- Negative values will show facilitation of attachment in a supporting context conditions, while larger values will indicate little attachment facilitation due to context
+---
+
+Now we fit the same model again, but this time with sum contrasts:
+
+```r
+model06 &lt;- lmer(RT ~ attachment*context+(1|subject)+ (1|item), RC_amb)
+summary(model06)
+```
+
+
+```
+##                       Estimate Std. Error        df   t value     Pr(&gt;|t|)
+## (Intercept)          398.42711  14.526602   45.8893 27.427412 4.179002e-30
+## attachment1           19.50281   5.330638 3009.9998  3.658626 2.579199e-04
+## context1             -28.14856   5.330638 3009.9998 -5.280525 1.379789e-07
+## attachment1:context1 -48.76079  10.661275 3009.9998 -4.573635 4.986853e-06
+```
+
+---
+
+- *Intercept* shows average RTs (dashed lines)
+
+![](UT-workshop-day-one_files/figure-html/fffdsfsfsdsdasdfffvfdsdfafsddsasdfahh-1.png)&lt;!-- --&gt;
+
+---
+
+- Main effect of attachment
+
+![](UT-workshop-day-one_files/figure-html/fffdsfsffffvfdsdfsdsdaafsddsasdfahh-1.png)&lt;!-- --&gt;
+
+---
+
+- Main effect of context
+
+![](UT-workshop-day-one_files/figure-html/fffdsfsffffvfdsdffdafsddsasdfahh-1.png)&lt;!-- --&gt;
+
+---
+## Follow-up on interaction
+- The interaction shows that attachment is facilitated in a supporting context. But we still do not know what the preferred attachment strategy is in a DP1-supporting and in a DP2-supporting context.
+- To examine this, we fit the same model to (1) items with only a DP1-supporting context, and (2) items with only a DP2-supporting context
+
+---
+
+```r
+RC_amb_DP1 &lt;- RC_amb %&gt;% filter(context=="DP1")
+```
+
+
+```r
+model07 &lt;- lmer(RT ~ attachment+(1|subject)+ (1|item), RC_amb_DP1)
+summary(model07)
+```
+
+
+```
+##             Estimate Std. Error         df  t value     Pr(&gt;|t|)
+## (Intercept) 412.5014  14.703047   40.06903 28.05550 5.846233e-28
+## attachment1  43.8832   8.145813 1428.93779  5.38721 8.358354e-08
+```
+In a DP1-supporting context, DP1 attachment is preferred to DP2 attachment
+
+---
+
+```r
+RC_amb_DP2 &lt;- RC_amb %&gt;% filter(context=="DP2")
+```
+
+
+```r
+model08 &lt;- lmer(RT ~ attachment+(1|subject)+ (1|item), RC_amb_DP2)
+summary(model08)
+```
+
+
+```
+##               Estimate Std. Error         df    t value     Pr(&gt;|t|)
+## (Intercept) 384.352824  14.828980   48.41412 25.9190325 4.889133e-30
+## attachment1  -4.877584   6.896588 1428.89940 -0.7072458 4.795290e-01
+```
+In a DP2-supporting context, no significant preference for either DP1 or DP2
+---
+## Contrast coding (continued)
+
+- A more flexible way around contrast coding is to define your own contrasts. Here are some general guidelines:
+- (0) # of contrasts should be decided on based on the number of levels
+- (1) contrasts should be independent
+- (2) contrasts should be centred -- Weightings should add up to zero
+- (3) contrasts should be orthogonal -- no correlation between contrasts
+- (4) weightings should allow you to address your research questions
+---
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; X &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; subject &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; L1.1 &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; item &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; attachment &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; context &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; RT &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; condition &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 743.7625 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1.DP1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item02 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 194.9060 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2.DP1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Particpant121 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; English &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; item03 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 471.2018 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; DP1.DP2 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+```
+## [1] "DP1.DP1" "DP2.DP1" "DP1.DP2" "DP2.DP2"
+```
+
+- Three contrasts are needed and the weightings should be either -(1/2) or (1/2) as we have a 2-by-2 design:
+
+---
+- Define each contrast using the c() function and bind them using cbind ()
+
+```r
+main_contx &lt;- c(1/2,-1/2,1/2,-1/2) #DP1context-DP2context
+main_att &lt;- c(1/2,1/2,-1/2,-1/2) #DP1attachment-DP2attachment
+int &lt;- c(1/2,-1/2,-1/2,1/2) #(DP1DP1+DP2DP2)-(DP2DP1+DP1DP2)
+contrasts(RC_amb$condition)&lt;-cbind(main_contx, main_att, int)
+```
+
+
+```r
+contrasts(RC_amb$condition)
+```
+
+```
+##         main_contx main_att  int
+## DP1.DP1        0.5      0.5  0.5
+## DP2.DP1       -0.5      0.5 -0.5
+## DP1.DP2        0.5     -0.5 -0.5
+## DP2.DP2       -0.5     -0.5  0.5
+```
+
+---
+Fit the model with interaction variable, as it includes all levels of our categorical variables.
+
+
+```r
+model07 &lt;- lmer(RT ~ condition+(1|subject)+ (1|item), RC_amb)
+```
+
+The output is identical to the output of model06 (which used sum coding)
+
+
+```
+##                      Estimate Std. Error        df   t value     Pr(&gt;|t|)
+## (Intercept)         398.42711  14.526602   45.8893 27.427412 4.179005e-30
+## conditionmain_contx  28.14856   5.330638 3009.9998  5.280525 1.379789e-07
+## conditionmain_att   -19.50281   5.330638 3009.9998 -3.658626 2.579199e-04
+## conditionint        -24.38039   5.330638 3009.9998 -4.573635 4.986853e-06
+```
+
+---
+## Summary
+- Contrasts allow you to examine the effects of categorical variables. Always ask yourself:
+- Treatment contrasts compare all levels to a baseline level
+- Sum contrasts allow you to derive main and interaction effects (as in a traditional ANOVA analysis)
+- You may also create your own contrasts
+- You may want to create additional models to explore the source of a significant interaction
+
+---
+## Tips for reporting mixed models
+Do not forget to discuss:
+- how many models you constructed
+- what were the fixed and random effects
+- how you coded your contrasts
+- what packages you used to derive the parameters
+
+---
+## Tips for reporting mixed models
+
+When reporting a significant effect, make sure to mention at least the following:
+- slope (raw effect size)
+- standard error
+- t value
+- p value (if applicable)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
