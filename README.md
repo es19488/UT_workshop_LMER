@@ -21,4 +21,4 @@ Please make sure to attend the workshop with R and Rstudio already installed on 
 
 You may also find the following YouTube video helpful to get you started with R, in case you have never used it before: https://www.youtube.com/watch?v=eR-XRSKsuR4
 
-Please kindly note that there are many helpful online tutorials available on mixed effects models (just google "tutorials on mixed effects modelling"), but for the sake of this workshop, we'll try to address as many key concepts as possible.
+Please do not hesitate to reach out to me via es19488@essex.ac.uk if you have any questions/require further information.
