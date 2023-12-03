@@ -9,9 +9,9 @@ Contents:
 
 Slides: Find the presentation slides in UT-workshop-day-one.html.
 
-Datasets: Explore the datasets - design_lexc.csv, groadner.csv, and context_amb.csv.
+Datasets (you will need these for running the exercises): design_lexc.csv, groadner.csv, and context_amb.csv.
 
-Exercises: Practice with the provided exercises - Exercise 1.R, Exercise 2.R, and Exercise 3.R.
+Exercises (we will work through these exercises during the practicums): Practice with the provided exercises - Exercise 1.R, Exercise 2.R, and Exercise 3.R.
 
 Please make sure to attend the workshop with R and Rstudio already installed on your laptop.
 
