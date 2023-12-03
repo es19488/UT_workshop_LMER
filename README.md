@@ -1,6 +1,17 @@
 # کارگاه آموزشی مدل سازی خطی ترکیبی (دانشکده زبان ها و ادبیات خارجی دانشگاه تهران)
 
-In this repository, you may find the slides (UT-workshop-day-one.html), datasets (design_lexc.csv; groadner.csv; context_amb.csv), and exercises (Exercise 1.R; Exercise 2.R; Exercise 3.R) for the workshop "Mixed Effects Modelling in R" to be held at the University of Tehran's Faculty of Foreign Languages and Literature on 19 and 21 Azar (10 and 12 December). Please make sure to attend the workshop with R and Rstudio already installed on your laptop.
+UT Mixed Effects Modelling Workshop Repository
+
+Welcome to the GitHub repository for the "Mixed Effects Modelling in R" workshop at the University of Tehran's Faculty of Foreign Languages and Literature. The workshop is scheduled for 19 and 21 Azar (10 and 12 December).
+
+Contents:
+
+Slides: Find the presentation slides in UT-workshop-day-one.html.
+Datasets: Explore the datasets - design_lexc.csv, groadner.csv, and context_amb.csv.
+Exercises: Practice with the provided exercises - Exercise 1.R, Exercise 2.R, and Exercise 3.R.
+Accessing Files: To access all the workshop materials, click on the "UT_lmer_workshop.zip" file. Download the raw file and unzip it to access the documents.
+
+Please make sure to attend the workshop with R and Rstudio already installed on your laptop.
 
 (a) Install R --> Visit https://cran.r-project.org/bin/windows/base and click on “Download R 4.3.2 for Windows” in the upper left corner. Save the R 4.3.2.exe installer in your Downloads directory (or any other location of your choice on your computer). Once the download has finished, double-click the file. If asked if you want to run the software and/or if you are allowing the app to make changes to your computer click “Run” and/or “Yes”. Select the language to be used in the installation (English is the default). Read the information provided and keep clicking “Next” on the following screens to keep all the default settings. Wait for the installation to finish.
 
